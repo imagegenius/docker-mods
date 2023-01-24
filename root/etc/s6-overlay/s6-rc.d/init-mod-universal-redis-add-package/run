@@ -1,0 +1,4 @@
+#!/usr/bin/with-contenv bash
+
+echo "\
+    redis-server" >>/mod-pip-packages-to-install.list
