@@ -2,7 +2,7 @@
 
 This mod installs and starts redis-server, to be installed/updated during container start.
 
-The `redis.conf` file is located at `/config/redis/` - modify this file to what you need.
+The `redis.conf` file is located in `/config/redis/` - modify this file to your needs.
 
 In docker arguments, set an environment variable `DOCKER_MODS=imagegenius/mods:universal-redis`
 
