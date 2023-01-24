@@ -1,6 +1,6 @@
 # Redis - Universal docker mod
 
-This mod adds redis, to be installed/updated during container start.
+This mod installs and starts redis-server, to be installed/updated during container start.
 
 The `redis.conf` file is located at `/config/redis/` - modify this file to what you need.
 
