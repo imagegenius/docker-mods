@@ -1,4 +1,8 @@
 #!/usr/bin/with-contenv bash
 
-echo "\
-    redis-server" >>/mod-pip-packages-to-install.list
+if ! command -v redis-server; then
+	echo "**** Adding redis-server to package install list ****"
+	echo "redis-server" >>/mod-repo-packages-to-install.list
+else
+	echo "**** redis-server already installed, skipping ****"
+fi
