@@ -1,8 +1,16 @@
 #!/usr/bin/with-contenv bash
 
 if ! command -v redis-server; then
-	echo "**** Adding redis-server to package install list ****"
-	echo "redis-server" >>/mod-repo-packages-to-install.list
+	echo "**** Adding redis to package install list ****"
+	if [ -f /usr/bin/apt ]; then
+		## Ubuntu
+		echo "redis-server" >>/mod-repo-packages-to-install.list
+	fi
+
+	if [ -f /sbin/apk ]; then
+		# Alpine
+		echo "redis" >>/mod-repo-packages-to-install.list
+	fi
 else
 	echo "**** redis-server already installed, skipping ****"
 fi
