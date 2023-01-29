@@ -1,5 +1,8 @@
 #!/usr/bin/with-contenv bash
 
+# Set default PostgreSQL version
+PGVERSION=${PG_VERSION:-14}
+
 # for ubuntu
 export PATH=$PATH:/usr/lib/postgresql/${PGVERSION}/bin/
 
