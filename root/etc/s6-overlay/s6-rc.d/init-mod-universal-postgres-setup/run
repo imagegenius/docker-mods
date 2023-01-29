@@ -3,6 +3,9 @@
 # Set default PostgreSQL version
 PGVERSION=${PG_VERSION:-14}
 
+# for ubuntu
+export PATH=$PATH:/usr/lib/postgresql/${PGVERSION}/bin/
+
 # Check if trying to upgrade PostgreSQL version
 if [ -f /config/postgres/PG_VERSION ] && [ $(cat /config/postgres/PG_VERSION) != ${PGVERSION} ]; then
 	echo "Looks like you are trying to upgrade to PostgreSQL $PGVERSION, This may cause corruption and is not recommended."

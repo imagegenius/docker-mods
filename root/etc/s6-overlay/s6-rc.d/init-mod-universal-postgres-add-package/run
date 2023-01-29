@@ -8,7 +8,6 @@ if ! command -v psql; then
 	if [ -f /usr/bin/apt ]; then
 		## Ubuntu
 		echo "postgresql-${PGVERSION}" >>/mod-repo-packages-to-install.list
-		export PATH=$PATH:/usr/lib/postgresql/${PGVERSION}/bin/
 	fi
 
 	if [ -f /sbin/apk ]; then
