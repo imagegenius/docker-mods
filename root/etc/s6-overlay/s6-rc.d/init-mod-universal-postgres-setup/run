@@ -1,0 +1,30 @@
+#!/usr/bin/with-contenv bash
+
+# Set default PostgreSQL version
+PGVERSION=${PG_VERSION:-14}
+
+# Check if trying to upgrade PostgreSQL version
+if [ -f /config/postgres/PG_VERSION ] && [ $(cat /config/postgres/PG_VERSION) != ${PGVERSION} ]; then
+	echo "Looks like you are trying to upgrade to PostgreSQL $PGVERSION, This may cause corruption and is not recommended."
+	echo "If you know what you're doing then modify the contents of '/config/postgres/PG_VERSION' to $PGVERSION"
+	exit 1
+fi
+
+# Create postgres folders and set permissions
+mkdir -p \
+	/config/postgres/ \
+	/run/postgresql/
+chown -R postgres:postgres \
+	/config/postgres/ \
+	/run/postgresql/
+
+# Initialize PostgreSQL database if not already initialized
+if [ ! -f /config/postgres/PG_VERSION ]; then
+	echo "Initializing PostgreSQL Database"
+	s6-setuidgid postgres initdb -D /config/postgres/ --username=postgres
+	s6-setuidgid postgres pg_ctl -D /config/postgres/ -o '-c listen_addresses= -p 5432' -w start
+	s6-setuidgid postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
+	s6-setuidgid postgres pg_ctl -D /config/postgres/ -m fast -w stop
+else
+	echo "PostgreSQL Database Already Initialised"
+fi
