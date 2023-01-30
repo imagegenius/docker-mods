@@ -1,9 +1,9 @@
-# Redis - Universal docker mod
+# Nextcloud - Swag Docker Mod
 
-This mod installs and starts redis-server, to be installed/updated during container start.
+This mod installs nextcloud dependencies so you can run nextcloud on swag.
 
-The `redis.conf` file is located in `/config/redis/` - modify this file to your needs.
+you may need to add `-e LD_PRELOAD="/usr/lib/preloadable_libiconv.so"` if there are relevant errors.
 
-In docker arguments, set an environment variable `DOCKER_MODS=imagegenius/mods:universal-redis`
+In docker arguments, set an environment variable `DOCKER_MODS=imagegenius/mods:swag-nextcloud`
 
 If adding multiple mods, enter them in an array separated by `|`, such as `DOCKER_MODS=linuxserver/mods:swag-ffmpeg|linuxserver/mods:swag-mod2`

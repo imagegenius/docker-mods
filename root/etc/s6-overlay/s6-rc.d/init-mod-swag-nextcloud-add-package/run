@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv bash
+
+# List of nextcloud dependencies
+packages="ffmpeg gnu-libiconv imagemagick libxml2 php81-fileinfo php81-pcntl php81-pecl-imagick php81-redis samba-client tar unzip php81-pecl-smbclient"
+
+for package in $packages; do
+	if ! apk info | grep -q $package; then
+		echo $package >>/mod-repo-packages-to-install.list
+	fi
+done

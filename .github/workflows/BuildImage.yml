@@ -4,8 +4,8 @@ on: [push, pull_request, workflow_dispatch]
 
 env:
   ENDPOINT: "imagegenius/mods" #don't modify
-  BASEIMAGE: "universal" #replace
-  MODNAME: "redis" #replace
+  BASEIMAGE: "swag" #replace
+  MODNAME: "nextcloud" #replace
 
 jobs:
   build:

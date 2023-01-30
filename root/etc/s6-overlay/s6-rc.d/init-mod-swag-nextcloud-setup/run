@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bash
+
+# configure php and nginx for nextcloud
+
+echo 'apc.enable_cli=1' >>/etc/php81/conf.d/apcu.ini
+
+sed -i \
+	'/opcache.enable=1/a opcache.enable_cli=1' \
+	/etc/php81/php.ini
