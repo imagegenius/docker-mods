@@ -3,8 +3,16 @@
 # List of nextcloud dependencies
 packages="ffmpeg gnu-libiconv imagemagick libxml2 php81-fileinfo php81-pcntl php81-pecl-imagick php81-redis samba-client tar unzip php81-pecl-smbclient"
 
+# hide apk 'No such file or directory'
+apk update -q
+
 for package in $packages; do
 	if ! apk info | grep -q $package; then
 		echo $package >>/mod-repo-packages-to-install.list
 	fi
 done
+
+# 'php81-pecl-smbclient' is in the testing repo
+if ! grep -q "http://dl-cdn.alpinelinux.org/alpine/edge/testing" /etc/apk/repositories; then
+	echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >>/etc/apk/repositories
+fi
