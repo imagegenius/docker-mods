@@ -1,0 +1,11 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+# stop fail2ban from starting
+if [ ! -f /config/fail2ban/fail2ban.conf ]; then
+	echo "Please configure Fail2ban in /config/fail2ban, once 'fail2ban.conf' has been created, Fail2ban will be allowed to start on reboot."
+	tail -f /dev/null
+fi
+
+exec \
+	fail2ban-client -x -vv -f start

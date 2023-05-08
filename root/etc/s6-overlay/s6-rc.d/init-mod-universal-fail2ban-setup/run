@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+mkdir -p \
+    /config/log/fail2ban \
+    /config/fail2ban/{action.d,filter.d,jail.d}
+
+# symlink fail2ban configs to /config
+rm -rf /etc/fail2ban
+ln -s /config/fail2ban /etc/fail2ban
