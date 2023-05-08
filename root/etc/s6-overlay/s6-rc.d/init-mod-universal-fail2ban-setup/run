@@ -26,6 +26,9 @@ if [ ! -L /etc/fail2ban ]; then
 	ln -s /config/fail2ban /etc/fail2ban
 fi
 
+sed -i 's/^logtarget.*/logtarget = \/config\/log\/fail2ban\/fail2ban.log/g' /config/fail2ban/fail2ban.conf
+sed -i 's/^dbfile.*/dbfile = \/config\/fail2ban\/fail2ban.sqlite3/g' /config/fail2ban/fail2ban.conf
+
 mkdir -p /config/log/fail2ban
 
 chown -R abc:abc \
