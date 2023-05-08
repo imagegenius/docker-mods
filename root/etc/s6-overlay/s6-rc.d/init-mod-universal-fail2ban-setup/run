@@ -1,10 +1,33 @@
 #!/usr/bin/with-contenv bash
-# shellcheck shell=bash
 
-mkdir -p \
-    /config/log/fail2ban \
-    /config/fail2ban/{action.d,filter.d,jail.d}
+# mishmash of code from lsio (docker-fail2ban/docker-swag)
 
-# symlink fail2ban configs to /config
-rm -rf /etc/fail2ban
-ln -s /config/fail2ban /etc/fail2ban
+# correct ip6tables legacy issue
+rm /sbin/ip6tables
+ln -s /sbin/ip6tables-nft /sbin/ip6tables
+
+# copy over default fail2ban config if not setup
+if [ ! -d /config/fail2ban ]; then
+	# remove unnecessary fail2ban filters
+	rm /etc/fail2ban/jail.d/alpine-ssh.conf
+
+	# copy fail2ban default action and filter to /defaults
+	mkdir -p /defaults/fail2ban
+	cp -R /etc/fail2ban/action.d /defaults/fail2ban/
+	cp -R /etc/fail2ban/filter.d /defaults/fail2ban/
+
+	mv /etc/fail2ban /config/fail2ban
+fi
+
+# symlink /config/fail2ban to /etc/fail2ban if its not already symlinked
+if [ ! -L /etc/fail2ban ]; then
+	# symlink fail2ban configs to /config
+	rm -rf /etc/fail2ban
+	ln -s /config/fail2ban /etc/fail2ban
+fi
+
+mkdir -p /config/log/fail2ban
+
+chown -R abc:abc \
+	/config/fail2ban \
+	/config/log/fail2ban
