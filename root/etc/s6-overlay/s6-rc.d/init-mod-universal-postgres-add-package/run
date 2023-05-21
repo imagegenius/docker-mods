@@ -7,13 +7,23 @@ if ! command -v psql; then
 	echo "**** Adding PostgreSQL to package install list ****"
 	if [ -f /usr/bin/apt ]; then
 		## Ubuntu
-		echo "postgresql-${PGVERSION}" >>/mod-repo-packages-to-install.list
+		if apt-cache show "postgresql-${PGVERSION}" >/dev/null 2>&1; then
+			echo "postgresql-${PGVERSION}" >>/mod-repo-packages-to-install.list
+		else
+			echo "Version ${PGVERSION} of PostgreSQL is not available."
+			sleep infinity
+		fi
 	fi
 
 	if [ -f /sbin/apk ]; then
 		# Alpine
-		echo "postgresql${PGVERSION} \
+		if apk info -vv | grep -q "postgresql${PGVERSION}"; then
+			echo "postgresql${PGVERSION} \
 postgresql${PGVERSION}-contrib" >>/mod-repo-packages-to-install.list
+		else
+			echo "Version ${PGVERSION} of PostgreSQL is not available."
+			sleep infinity
+		fi
 	fi
 else
 	echo "**** PostgreSQL already installed, skipping ****"
