@@ -3,31 +3,66 @@
 # Set default PostgreSQL version
 PGVERSION=${PG_VERSION:-14}
 
-# for ubuntu
-export PATH=$PATH:/usr/lib/postgresql/${PGVERSION}/bin/
+# Set PostgreSQL bin directory in the PATH
+export PATH=$PATH:/usr/lib/postgresql/$PGVERSION/bin/
 
-# Check if trying to upgrade PostgreSQL version
-if [ -f /config/postgres/PG_VERSION ] && [ $(cat /config/postgres/PG_VERSION) != ${PGVERSION} ]; then
-	echo "Looks like you are trying to upgrade to PostgreSQL $PGVERSION, This may cause corruption and is not recommended."
-	echo "If you know what you're doing then modify the contents of '/config/postgres/PG_VERSION' to $PGVERSION"
-	exit 1
-fi
+# Function to upgrade PostgreSQL version
+upgrade_postgres_version() {
+	PREVIOUS_PGVERSION=$(cat /config/postgres/PG_VERSION)
 
-# Create postgres folders and set permissions
-mkdir -p \
-	/config/postgres/ \
-	/run/postgresql/
-chown -R postgres:postgres \
-	/config/postgres/ \
-	/run/postgresql/
+	# Create new PostgreSQL directory
+	NEW_PGDIR="/config/postgres$PGVERSION"
+	mkdir -p "$NEW_PGDIR"
+	chown -R postgres:postgres "$NEW_PGDIR"
 
-# Initialize PostgreSQL database if not already initialized
-if [ ! -f /config/postgres/PG_VERSION ]; then
+	# Upgrade PostgreSQL data directory
+	pg_upgrade \
+		--old-datadir="/config/postgres/$PREVIOUS_PGVERSION" \
+		--new-datadir="$NEW_PGDIR" \
+		--old-bindir="/usr/lib/postgresql/$PREVIOUS_PGVERSION/bin/" \
+		--new-bindir="/usr/lib/postgresql/$PGVERSION/bin"
+
+	UPGRADE_SUCCESS=$?
+
+	if [ $UPGRADE_SUCCESS -eq 0 ]; then
+		echo "PostgreSQL successfully upgraded to version $PGVERSION"
+
+		# Remove old PostgreSQL directory
+		rm -rf "/config/postgres/$PREVIOUS_PGVERSION"
+	else
+		echo "Failed to upgrade PostgreSQL to version $PGVERSION"
+		echo "Please check the logs for more details"
+		exit 1
+	fi
+}
+
+# Check if the PostgreSQL directory exists
+if [ -d /config/postgres ]; then
+	if [ -f /config/postgres/PG_VERSION ]; then
+		# PostgreSQL directory exists and version is different
+		if [ "$(cat /config/postgres/PG_VERSION)" != "$PGVERSION" ]; then
+			echo "Found an existing PostgreSQL installation with a different version."
+			echo "Attempting to upgrade PostgreSQL to version $PGVERSION..."
+
+			# Upgrade PostgreSQL version
+			upgrade_postgres_version
+		else
+			echo "PostgreSQL Database Already Initialized"
+		fi
+	else
+		echo "Invalid PostgreSQL installation detected. Exiting..."
+		exit 1
+	fi
+else
 	echo "Initializing PostgreSQL Database"
+	mkdir -p /config/postgres /run/postgresql
+	chown -R postgres:postgres /config/postgres /run/postgresql
+
+	# Initialize PostgreSQL database
 	s6-setuidgid postgres initdb -D /config/postgres/ --username=postgres
 	s6-setuidgid postgres pg_ctl -D /config/postgres/ -o '-c listen_addresses= -p 5432' -w start
 	s6-setuidgid postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
 	s6-setuidgid postgres pg_ctl -D /config/postgres/ -m fast -w stop
-else
-	echo "PostgreSQL Database Already Initialised"
+
+	echo "PostgreSQL Database Initialized"
 fi
