@@ -1,11 +1,8 @@
 #!/usr/bin/with-contenv bash
 
-# Set default PostgreSQL version
-PGVERSION=${PG_VERSION:-14}
-ACTUALPGVERSION=${cat/config/postgres*/PG_VERSION}
-PGDIR="${PGDIR}"
+set -xe # debugging
 
-# Set PostgreSQL bin directory in the PATH
+# Set PostgreSQL bin directory in the PATH (for compatibility with ubuntu)
 export PATH=$PATH:/usr/lib/postgresql/${PGVERSION}/bin/
 
 # move old postgres folder to postgres<version>
@@ -13,24 +10,25 @@ if [ -d /config/postgres ]; then
 	mv /config/postgres /config/postgres$(cat /config/postgres/PG_VERSION)
 fi
 
+# Get PostgreSQL versions
+PGVERSION=${PG_VERSION:-14}                         # postgres version defined in the user facing 'PG_VERSION' variable
+ACTUALPGVERSION=$(cat /config/postgres*/PG_VERSION) # the actual postgres version that is in /config/postgres<version>
+PGDIR="/config/postgres${PGVERSION}"                # postgres path
+
 # Upgrade postgres
-if [ "${ACTUALPGVERSION}" -gt "${PGVERSION}" ]; then
+if [ ${PGVERSION} -gt ${ACTUALPGVERSION} ]; then
 	echo "Found an existing PostgreSQL installation with a different version."
 	echo "Attempting to upgrade PostgreSQL to version ${PGVERSION}..."
 
-	# Upgrade PostgreSQL version
-	PREVIOUS_PGVERSION=$(cat /config/postgres/PG_VERSION)
-
 	# Create new PostgreSQL directory
-	NEW_PGDIR="/config/postgres${PGVERSION}"
-	mkdir -p "$NEW_PGDIR"
-	chown -R postgres:postgres "$NEW_PGDIR"
+	mkdir -p ${PGDIR}
+	chown -R postgres:postgres ${PGDIR}
 
 	# Upgrade PostgreSQL data directory
 	pg_upgrade \
-		--old-datadir="/config/postgres/$PREVIOUS_PGVERSION" \
-		--new-datadir="$NEW_PGDIR" \
-		--old-bindir="/usr/lib/postgresql/$PREVIOUS_PGVERSION/bin/" \
+		--old-datadir="/config/postgres${ACTUALPGVERSION}" \
+		--new-datadir=${PGDIR} \
+		--old-bindir="/usr/lib/postgresql/${ACTUALPGVERSION}/bin/" \
 		--new-bindir="/usr/lib/postgresql/${PGVERSION}/bin"
 
 	UPGRADE_SUCCESS=$?
@@ -39,15 +37,14 @@ if [ "${ACTUALPGVERSION}" -gt "${PGVERSION}" ]; then
 		echo "PostgreSQL successfully upgraded to version ${PGVERSION}"
 
 		# Remove old PostgreSQL directory
-		rm -rf "/config/postgres/$PREVIOUS_PGVERSION"
+		rm -rf /config/postgres${ACTUALPGVERSION}
 	else
+		rm -rf ${PGDIR}
 		echo "Failed to upgrade PostgreSQL to version ${PGVERSION}"
 		echo "Please check the logs for more details"
 		sleep infinity
 	fi
-elif [ "${ACTUALPGVERSION}" = "${PGVERSION}" ]; then
-	: # do nothing...
-elif [ "${ACTUALPGVERSION}" -lt "${PGVERSION}" ]; then
+elif [ ${PGVERSION} -lt ${ACTUALPGVERSION} ]; then
 	echo "You are attempting to downgrade PostgreSQL ${PGVERSION} to ${ACTUALPGVERSION}, this action is not supported."
 	echo "Please modify the 'PG_VERSION' variable to ${ACTUALPGVERSION} or higher!"
 fi
