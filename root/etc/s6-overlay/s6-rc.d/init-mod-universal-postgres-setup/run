@@ -8,9 +8,10 @@ export PATH=$PATH:/usr/lib/postgresql/${PGVERSION}/bin/
 
 # Check if trying to upgrade PostgreSQL version
 if [ -f /config/postgres/PG_VERSION ] && [ $(cat /config/postgres/PG_VERSION) != ${PGVERSION} ]; then
-	echo "Looks like you are trying to upgrade to PostgreSQL $PGVERSION, This may cause corruption and is not recommended."
-	echo "If you know what you're doing then modify the contents of '/config/postgres/PG_VERSION' to $PGVERSION"
-	exit 1
+	echo "Looks like you are trying to upgrade to PostgreSQL $PGVERSION, this will cause corruption and is not supported."
+	echo "You may want to consider using the 'pg_upgrade' utility to upgrade your $(cat /config/postgres/PG_VERSION) to ${PGVERSION},"
+	echo "otherwise stick with $(cat /config/postgres/PG_VERSION) by setting 'PG_VERSION' back to '$(cat /config/postgres/PG_VERSION)'"
+	sleep infinity
 fi
 
 # Create postgres folders and set permissions
